@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Issues — Library MS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+	<link rel="shortcut icon" href="https://img.icons8.com/?size=64&id=qJ5bReX2GLFb&format=png" type="image/x-icon">
+	 <style>
+        :root {
+            --ink: #0f0e0c; --paper: #f5f0e8; --cream: #ede7d9;
+            --gold: #c9a84c; --gold-light: #e8c96a; --rust: #b5451b;
+            --sage: #4a6741; --navy: #1a2744; --white: #ffffff;
+            --shadow: 0 4px 24px rgba(15,14,12,0.1);
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+        nav { background: var(--navy); padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+        .nav-brand { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--gold); text-decoration: none; }
+        .nav-links { display: flex; gap: 0.25rem; }
+        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(201,168,76,0.15); color: var(--gold-light); }
+
+        .page-header { background: var(--navy); color: var(--white); padding: 2.5rem 2.5rem 3rem; }
+        .page-header-inner { max-width: 1200px; margin: 0 auto; }
+        .breadcrumb { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 0.75rem; }
+        .breadcrumb a { color: var(--gold); text-decoration: none; }
+        .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; }
+        .page-header p { color: rgba(255,255,255,0.55); font-size: 0.9rem; margin-top: 0.35rem; }
+
+        .content { max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem 4rem; }
+
+        .alert { padding: 1rem 1.25rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #4caf50; }
+        .alert-error   { background: #fdecea; color: #c62828; border-left: 4px solid #ef5350; }
+
+        .toolbar { display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filter-tabs { display: flex; gap: 0.5rem; }
+        .filter-tab { padding: 0.5rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; text-decoration: none; border: 2px solid var(--cream); color: rgba(15,14,12,0.6); transition: all 0.2s; background: var(--white); }
+        .filter-tab:hover { border-color: var(--navy); color: var(--navy); }
+        .filter-tab.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+        .filter-tab.overdue-tab.active { background: var(--rust); border-color: var(--rust); }
+        .btn-add { background: var(--gold); color: var(--navy); text-decoration: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; white-space: nowrap; }
+        .btn-add:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+        .fine-info-box { background: rgba(181,69,27,0.05); border: 1px solid rgba(181,69,27,0.18); border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; font-size: 0.84rem; color: rgba(15,14,12,0.65); display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .fine-info-box strong { color: var(--rust); }
+        .fine-legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dot-issued   { background: #2196f3; }
+        .dot-overdue  { background: var(--rust); }
+        .dot-returned { background: var(--sage); }
+
+        .table-wrap { background: var(--white); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid rgba(15,14,12,0.06); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--navy); }
+        thead th { color: rgba(255,255,255,0.75); font-size: 0.78rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 1rem 1.25rem; text-align: left; }
+        tbody tr { border-bottom: 1px solid rgba(15,14,12,0.05); transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(201,168,76,0.04); }
+        tbody tr.row-overdue { background: rgba(181,69,27,0.03); }
+        tbody tr.row-overdue:hover { background: rgba(181,69,27,0.06); }
+        td { padding: 1rem 1.25rem; font-size: 0.9rem; vertical-align: middle; }
+
+        .book-title  { font-weight: 600; color: var(--navy); }
+        .book-author { font-size: 0.8rem; color: rgba(15,14,12,0.5); margin-top: 0.1rem; }
+        .student-name { font-weight: 500; }
+        .student-id   { font-size: 0.78rem; color: rgba(15,14,12,0.45); font-family: monospace; }
+
+        .badge { display: inline-block; padding: 0.22rem 0.7rem; border-radius: 20px; font-size: 0.73rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-issued   { background: #e3f2fd; color: #1565c0; }
+        .badge-returned { background: #e8f5e9; color: #2e7d32; }
+        .badge-overdue  { background: #fdecea; color: #c62828; }
+
+        .date-text   { font-size: 0.84rem; }
+        .due-overdue { color: var(--rust); font-weight: 600; }
+
+        .overdue-days-badge { display: inline-block; background: rgba(181,69,27,0.1); color: var(--rust); font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; margin-top: 0.2rem; }
+
+        .fine-zero  { font-size: 0.82rem; color: rgba(15,14,12,0.3); }
+        .fine-paid  { font-weight: 600; color: var(--sage); font-size: 0.88rem; }
+        .fine-live-wrap { display: flex; flex-direction: column; gap: 0.1rem; }
+        .fine-live-amount { display: flex; align-items: center; gap: 0.35rem; font-weight: 700; color: var(--rust); font-size: 0.92rem; }
+        .fine-live-sub { font-size: 0.7rem; color: rgba(181,69,27,0.7); font-weight: 500; }
+        .tick-dot { width: 6px; height: 6px; background: var(--rust); border-radius: 50%; animation: tickPulse 1.5s ease-in-out infinite; flex-shrink: 0; }
+        @keyframes tickPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.5);} }
+
+        .actions { display: flex; gap: 0.5rem; align-items: center; }
+        .btn-return { background: rgba(74,103,65,0.1); color: var(--sage); border: none; padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-return:hover { background: var(--sage); color: var(--white); }
+
+        /* NEW — Collect Fine button */
+        .btn-collect-fine { display: inline-block; background: rgba(181,69,27,0.1); color: var(--rust); border: 1px solid rgba(181,69,27,0.25); padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn-collect-fine:hover { background: var(--rust); color: var(--white); }
+
+        .closed-label { font-size: 0.8rem; color: rgba(15,14,12,0.3); font-style: italic; }
+
+        .empty { padding: 4rem; text-align: center; color: rgba(15,14,12,0.35); }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .empty h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--navy); margin-bottom: 0.5rem; }
+
+        footer { background: var(--navy); color: rgba(255,255,255,0.4); text-align: center; padding: 1.5rem; font-size: 0.8rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-brand" th:href="@{/}">📚 LibraryMS</a>
+    <div class="nav-links">
+        <a th:href="@{/books}">Books</a>
+        <a th:href="@{/students}">Students</a>
+        <a th:href="@{/issues}" class="active">Issues</a>
+        <a th:href="@{/payments}">Payments</a>
+    </div>
+
+	</nav>
+</nav>
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div class="breadcrumb"><a th:href="@{/}">Home</a> / Issues</div>
+        <h1>Issue Records</h1>
+        <p>Track all book issues, returns, and overdue fines in real time</p>
+    </div>
+</div>
+
+<div class="content">
+    <div th:if="${successMessage}" class="alert alert-success">✓ <span th:text="${successMessage}"></span></div>
+    <div th:if="${errorMessage}"   class="alert alert-error">✕ <span th:text="${errorMessage}"></span></div>
+
+    <div class="fine-info-box">
+        <strong>⚠ Fine Rule:</strong> ₹5 per day after due date
+        <div class="fine-legend-item"><span class="legend-dot dot-issued"></span> Issued — within due date, no fine</div>
+        <div class="fine-legend-item"><span class="legend-dot dot-overdue"></span> Overdue — fine accumulating daily</div>
+        <div class="fine-legend-item"><span class="legend-dot dot-returned"></span> Returned — final fine recorded</div>
+    </div>
+
+    <div class="toolbar">
+        <div class="filter-tabs">
+            <a th:href="@{/issues}" class="filter-tab"
+               th:classappend="${filterStatus == null} ? 'active'">All Records</a>
+            <a th:href="@{/issues(status='OVERDUE')}" class="filter-tab overdue-tab"
+               th:classappend="${filterStatus == 'OVERDUE'} ? 'active'">⚠ Overdue Only</a>
+        </div>
+        <a th:href="@{/issues/issue}" class="btn-add">+ Issue Book</a>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Book</th>
+                    <th>Student</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Return Date</th>
+                    <th>Fine (₹)</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr th:if="${#lists.isEmpty(issues)}">
+                    <td colspan="9">
+                        <div class="empty">
+                            <div class="empty-icon">🔖</div>
+                            <h3>No issue records found</h3>
+                            <p>Issue a book to a student to get started.</p>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr th:each="issue, stat : ${issues}"
+                    th:with="isOverdue=${issue.status.name() == 'ISSUED' and issue.dueDate.isBefore(#temporals.createToday())},
+                             overdueDays=${issue.status.name() == 'ISSUED' and issue.dueDate.isBefore(#temporals.createToday()) ? #temporals.createToday().toEpochDay() - issue.dueDate.toEpochDay() : 0},
+                             liveFine=${issue.status.name() == 'ISSUED' and issue.dueDate.isBefore(#temporals.createToday()) ? (#temporals.createToday().toEpochDay() - issue.dueDate.toEpochDay()) * 5 : 0}"
+                    th:class="${isOverdue} ? 'row-overdue' : ''">
+
+                    <td style="color:rgba(15,14,12,0.4); font-size:0.82rem;" th:text="${stat.count}"></td>
+
+                    <!-- Book -->
+                    <td>
+                        <div class="book-title"  th:text="${issue.book.title}"></div>
+                        <div class="book-author" th:text="${issue.book.author}"></div>
+                    </td>
+
+                    <!-- Student -->
+                    <td>
+                        <div class="student-name" th:text="${issue.student.name}"></div>
+                        <div class="student-id"   th:text="${issue.student.studentId}"></div>
+                    </td>
+
+                    <!-- Issue Date -->
+                    <td class="date-text" th:text="${issue.issueDate}"></td>
+
+                    <!-- Due Date -->
+                    <td>
+                        <div class="date-text"
+                             th:class="${isOverdue} ? 'date-text due-overdue' : 'date-text'"
+                             th:text="${issue.dueDate}"></div>
+                        <div th:if="${isOverdue}"
+                             class="overdue-days-badge"
+                             th:text="${overdueDays} + ' days overdue'"></div>
+                    </td>
+
+                    <!-- Return Date -->
+                    <td class="date-text"
+                        style="color:rgba(15,14,12,0.45);"
+                        th:text="${issue.returnDate != null ? issue.returnDate : '—'}"></td>
+
+                    <!-- Fine Column -->
+                    <td>
+                        <!-- ISSUED + on time → no fine -->
+                        <span th:if="${issue.status.name() == 'ISSUED' and !isOverdue}"
+                              class="fine-zero">₹0 — On time</span>
+
+                        <!-- ISSUED + overdue → live fine -->
+                        <div th:if="${issue.status.name() == 'ISSUED' and isOverdue}"
+                             class="fine-live-wrap">
+                            <div class="fine-live-amount">
+                                <span class="tick-dot"></span>
+                                <span th:text="'₹' + ${liveFine}"></span>
+                            </div>
+                            <span class="fine-live-sub"
+                                  th:text="${overdueDays} + ' days × ₹5'"></span>
+                        </div>
+
+                        <!-- RETURNED on time → no fine -->
+                        <span th:if="${issue.status.name() == 'RETURNED' and (issue.fineAmount == null or issue.fineAmount == 0)}"
+                              class="fine-zero">₹0 — On time</span>
+
+                        <!-- OVERDUE → fine pending collection -->
+                        <span th:if="${issue.status.name() == 'OVERDUE'}"
+                              class="fine-live-amount"
+                              th:text="'₹' + ${issue.fineAmount}"></span>
+                    </td>
+
+                    <!-- Status Badge -->
+                    <td>
+                        <span th:if="${issue.status.name() == 'ISSUED' and !isOverdue}"
+                              class="badge badge-issued">ISSUED</span>
+                        <span th:if="${issue.status.name() == 'ISSUED' and isOverdue}"
+                              class="badge badge-overdue">OVERDUE</span>
+                        <span th:if="${issue.status.name() == 'RETURNED'}"
+                              class="badge badge-returned">RETURNED</span>
+                        <span th:if="${issue.status.name() == 'OVERDUE'}"
+                              class="badge badge-overdue">OVERDUE</span>
+                    </td>
+
+                    <!-- Action Column — KEY FIX HERE -->
+                    <td>
+                        <div class="actions">
+
+                            <!-- ISSUED (on time) → Return button -->
+                            <form th:if="${issue.status.name() == 'ISSUED' and !isOverdue}"
+                                  th:action="@{/issues/return/{id}(id=${issue.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('Confirm return of this book?')">
+                                <button type="submit" class="btn-return">Return</button>
+                            </form>
+
+                            <!-- ISSUED (overdue) → Return button with fine warning -->
+                            <form th:if="${issue.status.name() == 'ISSUED' and isOverdue}"
+                                  th:action="@{/issues/return/{id}(id=${issue.id})}"
+                                  method="post"
+                                  th:onsubmit="'return confirm(\'Book is overdue! Fine of ₹' + ${liveFine} + ' will be charged. Confirm return?\')'">
+                                <button type="submit" class="btn-return">Return</button>
+                            </form>
+
+                            <!-- OVERDUE (returned late, fine not yet paid) → Collect Fine button -->
+                            <a th:if="${issue.status.name() == 'OVERDUE'}"
+                               th:href="@{/payments/collect/{id}(id=${issue.id})}"
+                               class="btn-collect-fine">
+                                💰 Collect Fine
+                            </a>
+
+                            <!-- RETURNED (no fine) → Closed -->
+                            <span th:if="${issue.status.name() == 'RETURNED'}"
+                                  class="closed-label">Closed</span>
+
+                        </div>
+                    </td>
+
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>&copy; 2025 Library Management System &mdash; Developed by <strong style="color: var(--gold-light);">Ashok Kumar Mishra</strong></footer>
+</body>
+</html>

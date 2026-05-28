@@ -1,0 +1,16 @@
+.metadata/
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+target/
+*.class
+*.jar
+*.war
+*.log
+application.properties
+application.yml
+.env
+.DS_Store
+Thumbs.db

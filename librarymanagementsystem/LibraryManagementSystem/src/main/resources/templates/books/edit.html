@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Book — Library MS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+	<link rel="shortcut icon" href="https://img.icons8.com/?size=64&id=qJ5bReX2GLFb&format=png" type="image/x-icon">
+	 <style>
+        :root {
+            --ink: #0f0e0c; --paper: #f5f0e8; --cream: #ede7d9;
+            --gold: #c9a84c; --gold-light: #e8c96a; --rust: #b5451b;
+            --navy: #1a2744; --white: #ffffff;
+            --shadow: 0 4px 24px rgba(15,14,12,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+        nav { background: var(--navy); padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+        .nav-brand { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--gold); text-decoration: none; }
+        .nav-links { display: flex; gap: 0.25rem; }
+        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(201,168,76,0.15); color: var(--gold-light); }
+
+        .page-header { background: var(--navy); color: var(--white); padding: 2.5rem 2.5rem 3rem; }
+        .page-header-inner { max-width: 760px; margin: 0 auto; }
+        .breadcrumb { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 0.75rem; }
+        .breadcrumb a { color: var(--gold); text-decoration: none; }
+        .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+        .page-header p { color: rgba(255,255,255,0.55); font-size: 0.9rem; margin-top: 0.35rem; }
+
+        .content { max-width: 760px; margin: 0 auto; padding: 2rem 2.5rem 4rem; }
+
+        .alert { padding: 1rem 1.25rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #4caf50; }
+        .alert-error { background: #fdecea; color: #c62828; border-left: 4px solid #ef5350; }
+
+        .form-card { background: var(--white); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid rgba(15,14,12,0.06); overflow: hidden; }
+        .form-card-header { background: var(--cream); padding: 1.25rem 2rem; border-bottom: 1px solid rgba(15,14,12,0.07); display: flex; align-items: center; justify-content: space-between; }
+        .form-card-header h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--navy); }
+        .book-id-badge { font-size: 0.75rem; font-weight: 600; background: rgba(26,39,68,0.1); color: var(--navy); padding: 0.3rem 0.75rem; border-radius: 20px; }
+        .form-body { padding: 2rem; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(15,14,12,0.6); margin-bottom: 0.5rem; }
+        .form-group label .req { color: var(--rust); }
+        .form-control { width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--cream); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--ink); background: var(--white); transition: border-color 0.2s; }
+        .form-control:focus { outline: none; border-color: var(--gold); }
+        .form-control.is-invalid { border-color: var(--rust); }
+        .error-msg { font-size: 0.8rem; color: var(--rust); margin-top: 0.35rem; }
+        .hint { font-size: 0.78rem; color: rgba(15,14,12,0.4); margin-top: 0.35rem; }
+
+        /* Info box about issued copies */
+        .info-box { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: rgba(15,14,12,0.7); }
+        .info-box strong { color: var(--navy); }
+
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; padding: 1.25rem 2rem; border-top: 1px solid rgba(15,14,12,0.07); background: var(--cream); }
+        .btn-submit { background: var(--gold); color: var(--navy); border: none; padding: 0.75rem 2rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+        .btn-cancel { background: transparent; color: rgba(15,14,12,0.6); border: 2px solid var(--cream); padding: 0.75rem 1.5rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+        .btn-cancel:hover { border-color: rgba(15,14,12,0.2); color: var(--ink); }
+
+        footer { background: var(--navy); color: rgba(255,255,255,0.4); text-align: center; padding: 1.5rem; font-size: 0.8rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+	
+
+
+<nav>
+    <a class="nav-brand" th:href="@{/}">📚 LibraryMS</a>
+    <div class="nav-links">
+        <a th:href="@{/books}" class="active">Books</a>
+        <a th:href="@{/students}">Students</a>
+        <a th:href="@{/issues}">Issues</a>
+		<a th:href="@{/payments}">Payments</a>
+    </div>
+	
+	
+	</nav>
+</nav>
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div class="breadcrumb"><a th:href="@{/}">Home</a> / <a th:href="@{/books}">Books</a> / Edit</div>
+        <h1>Edit Book</h1>
+        <p>Update the book details below</p>
+    </div>
+</div>
+
+<div class="content">
+    <div th:if="${errorMessage}" class="alert alert-error">✕ <span th:text="${errorMessage}"></span></div>
+
+    <div class="info-box">
+        💡 <strong>Note:</strong> Changing total copies recalculates available copies automatically,
+        keeping currently issued copies intact.
+    </div>
+
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2>✏️ Edit Book Details</h2>
+            <span class="book-id-badge" th:text="'ID: ' + ${book.id}"></span>
+        </div>
+
+        <form th:action="@{/books/edit/{id}(id=${book.id})}" th:object="${book}" method="post">
+            <div class="form-body">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Title <span class="req">*</span></label>
+                        <input type="text" th:field="*{title}" class="form-control"
+                               th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"/>
+                        <div class="error-msg" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Author <span class="req">*</span></label>
+                        <input type="text" th:field="*{author}" class="form-control"
+                               th:classappend="${#fields.hasErrors('author')} ? 'is-invalid'"/>
+                        <div class="error-msg" th:if="${#fields.hasErrors('author')}" th:errors="*{author}"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ISBN <span class="req">*</span></label>
+                    <input type="text" th:field="*{isbn}" class="form-control"
+                           th:classappend="${#fields.hasErrors('isbn')} ? 'is-invalid'"/>
+                    <div class="error-msg" th:if="${#fields.hasErrors('isbn')}" th:errors="*{isbn}"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Publication Date</label>
+                        <input type="date" th:field="*{publicationDate}" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Copies <span class="req">*</span></label>
+                        <input type="number" th:field="*{totalCopies}" class="form-control" min="1"
+                               th:classappend="${#fields.hasErrors('totalCopies')} ? 'is-invalid'"/>
+                        <div class="error-msg" th:if="${#fields.hasErrors('totalCopies')}" th:errors="*{totalCopies}"></div>
+                        <div class="hint">Currently available: <strong th:text="${book.availableCopies}"></strong> copies</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="form-actions">
+                <a th:href="@{/books}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-submit">Update Book</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer>&copy; 2025 Library Management System &mdash; Developed by <strong style="color: var(--gold-light);">Ashok Kumar Mishra</strong></footer><footer>&copy; 2025 Library Management System &mdash; Developed by <strong style="color: var(--gold-light);">Ashok Kumar Mishra</strong></footer>
+</body>
+</html>

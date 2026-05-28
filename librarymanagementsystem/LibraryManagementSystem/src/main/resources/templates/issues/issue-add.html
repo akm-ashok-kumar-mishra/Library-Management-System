@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Issue Book — Library MS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+	<link rel="shortcut icon" href="https://img.icons8.com/?size=64&id=qJ5bReX2GLFb&format=png" type="image/x-icon">
+	<style>
+        :root {
+            --ink: #0f0e0c; --paper: #f5f0e8; --cream: #ede7d9;
+            --gold: #c9a84c; --gold-light: #e8c96a; --rust: #b5451b;
+            --sage: #4a6741; --navy: #1a2744; --white: #ffffff;
+            --shadow: 0 4px 24px rgba(15,14,12,0.1);
+            --shadow-lg: 0 12px 40px rgba(15,14,12,0.18);
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+        /* NAV */
+        nav { background: var(--navy); padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+        .nav-brand { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--gold); text-decoration: none; }
+        .nav-links { display: flex; gap: 0.25rem; }
+        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(201,168,76,0.15); color: var(--gold-light); }
+
+        /* PAGE HEADER */
+        .page-header { background: var(--navy); color: var(--white); padding: 2.5rem 2.5rem 3rem; }
+        .page-header-inner { max-width: 760px; margin: 0 auto; }
+        .breadcrumb { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 0.75rem; }
+        .breadcrumb a { color: var(--gold); text-decoration: none; }
+        .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+        .page-header p { color: rgba(255,255,255,0.55); font-size: 0.9rem; margin-top: 0.35rem; }
+
+        /* CONTENT */
+        .content { max-width: 760px; margin: 0 auto; padding: 2rem 2.5rem 4rem; }
+
+        /* ALERTS */
+        .alert { padding: 1rem 1.25rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .alert-error { background: #fdecea; color: #c62828; border-left: 4px solid #ef5350; }
+
+        /* INFO BANNER */
+        .info-banner { background: rgba(26,39,68,0.06); border: 1px solid rgba(26,39,68,0.12); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .info-item { font-size: 0.82rem; color: rgba(15,14,12,0.6); }
+        .info-item strong { color: var(--navy); display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
+
+        /* FORM CARD */
+        .form-card { background: var(--white); border-radius: 16px; box-shadow: var(--shadow); border: 1px solid rgba(15,14,12,0.06); overflow: hidden; }
+        .form-card-header { background: var(--cream); padding: 1.25rem 2rem; border-bottom: 1px solid rgba(15,14,12,0.07); }
+        .form-card-header h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--navy); }
+        .form-body { padding: 2rem; }
+
+        /* FORM GROUP */
+        .form-group { margin-bottom: 1.75rem; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(15,14,12,0.6); margin-bottom: 0.75rem; }
+        .form-group label .req { color: var(--rust); }
+        .hint { font-size: 0.78rem; color: rgba(15,14,12,0.4); margin-top: 0.5rem; }
+        .error-msg { font-size: 0.8rem; color: var(--rust); margin-top: 0.4rem; font-weight: 500; }
+
+        /* SEARCH TAGS */
+        .search-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.65rem; }
+        .search-tag { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.65rem; border-radius: 20px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; user-select: none; }
+        .tag-all    { background: rgba(26,39,68,0.08);  color: var(--navy); border-color: rgba(26,39,68,0.18); }
+        .tag-name   { background: rgba(201,168,76,0.1); color: #8a6e20;    border-color: rgba(201,168,76,0.25); }
+        .tag-id     { background: rgba(26,39,68,0.08);  color: var(--navy); border-color: rgba(26,39,68,0.18); }
+        .tag-email  { background: rgba(74,103,65,0.1);  color: var(--sage); border-color: rgba(74,103,65,0.25); }
+        .tag-phone  { background: rgba(181,69,27,0.08); color: var(--rust); border-color: rgba(181,69,27,0.2); }
+        .tag-dept   { background: rgba(56,100,180,0.08);color: #1a4db5;    border-color: rgba(56,100,180,0.2); }
+        .search-tag:hover { opacity: 0.75; transform: translateY(-1px); }
+        .search-tag.active { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transform: translateY(-1px); }
+
+        /* SEARCH INPUT */
+        .search-wrap { position: relative; margin-bottom: 0.5rem; }
+        .search-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; pointer-events: none; color: rgba(15,14,12,0.35); }
+        .search-input {
+            width: 100%; padding: 0.75rem 1rem 0.75rem 2.4rem;
+            border: 2px solid var(--cream); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            color: var(--ink); background: var(--white); transition: border-color 0.2s;
+        }
+        .search-input:focus { outline: none; border-color: var(--gold); }
+
+        /* RESULT COUNT */
+        .result-count { font-size: 0.78rem; font-weight: 600; padding: 0.3rem 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; display: none; }
+        .count-found { background: #e8f5e9; color: #2e7d32; }
+        .count-none  { background: #fdecea; color: #c62828; }
+
+        /* ══════════════════════════════════
+           CUSTOM DROPDOWN
+        ══════════════════════════════════ */
+        .custom-dropdown { position: relative; }
+
+        /* The visible trigger button */
+        .dropdown-trigger {
+            width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem;
+            border: 2px solid var(--cream); border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            color: rgba(15,14,12,0.45); background: var(--white);
+            cursor: pointer; text-align: left; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative;
+        }
+        .dropdown-trigger.has-value { color: var(--ink); font-weight: 500; }
+        .dropdown-trigger:hover, .dropdown-trigger.open { border-color: var(--gold); }
+        .dropdown-arrow {
+            font-size: 0.7rem; color: rgba(15,14,12,0.35);
+            transition: transform 0.25s; flex-shrink: 0;
+        }
+        .dropdown-trigger.open .dropdown-arrow { transform: rotate(180deg); }
+
+        /* The list panel */
+        .dropdown-list {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: var(--white); border: 2px solid var(--gold);
+            border-radius: 10px; box-shadow: var(--shadow-lg);
+            max-height: 260px; overflow-y: auto;
+            z-index: 50; display: none;
+            animation: dropIn 0.2s ease;
+        }
+        .dropdown-list.open { display: block; }
+        @keyframes dropIn { from{opacity:0;transform:translateY(-6px);} to{opacity:1;transform:translateY(0);} }
+
+        /* Scrollbar */
+        .dropdown-list::-webkit-scrollbar { width: 4px; }
+        .dropdown-list::-webkit-scrollbar-track { background: var(--cream); }
+        .dropdown-list::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+        /* Each option row */
+        .dropdown-option {
+            padding: 0.75rem 1rem; font-size: 0.875rem;
+            cursor: pointer; transition: background 0.15s;
+            border-bottom: 1px solid rgba(15,14,12,0.05);
+            color: var(--ink); line-height: 1.4;
+        }
+        .dropdown-option:last-child { border-bottom: none; }
+        .dropdown-option:hover { background: rgba(201,168,76,0.08); }
+        .dropdown-option.selected { background: rgba(26,39,68,0.06); font-weight: 600; color: var(--navy); }
+        .dropdown-option.hidden { display: none; }
+        .dropdown-option .opt-main { font-weight: 600; color: var(--navy); margin-bottom: 0.1rem; }
+        .dropdown-option .opt-sub  { font-size: 0.78rem; color: rgba(15,14,12,0.5); }
+        .dropdown-empty { padding: 1.25rem; text-align: center; color: rgba(15,14,12,0.35); font-size: 0.875rem; display: none; }
+
+        /* Hidden real select (submits with form) */
+        .real-select { display: none; }
+
+        /* PREVIEW CARD */
+        .preview-card {
+            background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.3);
+            border-radius: 10px; padding: 0.9rem 1.1rem; margin-top: 0.65rem;
+            font-size: 0.84rem; display: none; animation: fadeIn 0.25s ease;
+        }
+        .preview-card.show { display: block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
+        .preview-title { font-weight: 700; color: var(--navy); margin-bottom: 0.35rem; font-size: 0.92rem; }
+        .preview-row { color: rgba(15,14,12,0.55); font-size: 0.8rem; margin-top: 0.2rem; }
+        .preview-row span { font-weight: 600; color: var(--ink); }
+
+        /* DIVIDER */
+        .section-divider { display: flex; align-items: center; gap: 1rem; margin: 0.5rem 0 1.75rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(15,14,12,0.35); }
+        .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--cream); }
+
+        /* FORM ACTIONS */
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; padding: 1.25rem 2rem; border-top: 1px solid rgba(15,14,12,0.07); background: var(--cream); }
+        .btn-submit { background: var(--sage); color: var(--white); border: none; padding: 0.75rem 2rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-submit:hover { background: #3a5532; transform: translateY(-1px); }
+        .btn-cancel { background: transparent; color: rgba(15,14,12,0.6); border: 2px solid var(--cream); padding: 0.75rem 1.5rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+        .btn-cancel:hover { border-color: rgba(15,14,12,0.2); color: var(--ink); }
+
+        footer { background: var(--navy); color: rgba(255,255,255,0.4); text-align: center; padding: 1.5rem; font-size: 0.8rem; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+	
+	
+
+<nav>
+    <a class="nav-brand" th:href="@{/}">📚 LibraryMS</a>
+    <div class="nav-links">
+        <a th:href="@{/books}">Books</a>
+        <a th:href="@{/students}">Students</a>
+        <a th:href="@{/issues}" class="active">Issues</a>
+		<a th:href="@{/payments}">Payments</a>
+    </div>
+
+	</div>
+	</nav>
+</nav>
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <div class="breadcrumb">
+            <a th:href="@{/}">Home</a> /
+            <a th:href="@{/issues}">Issues</a> /
+            Issue Book
+        </div>
+        <h1>Issue a Book</h1>
+        <p>Search and select a book and student to create an issue record</p>
+    </div>
+</div>
+
+<div class="content">
+    <div th:if="${errorMessage}" class="alert alert-error">
+        ✕ <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="info-banner">
+        <div class="info-item"><strong>Issue Period</strong>14 days from today</div>
+        <div class="info-item"><strong>Fine Rate</strong>₹5 per overdue day</div>
+        <div class="info-item"><strong>Max per Student</strong>5 books at a time</div>
+    </div>
+
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2>🔖 Issue Details</h2>
+        </div>
+
+        <form th:action="@{/issues/issue}" th:object="${issue}" method="post" id="issueForm">
+            <div class="form-body">
+
+                <!-- ══════════════════════════
+                     BOOK SELECTION
+                ══════════════════════════ -->
+                <div class="form-group">
+                    <label>Select Book <span class="req">*</span></label>
+
+                    <!-- Search tags -->
+                    <div class="search-tags">
+                        <span class="search-tag tag-all   active" onclick="setFilter('book','','this')">All</span>
+                        <span class="search-tag tag-name"         onclick="setFilter('book','title','this')">📖 Title</span>
+                        <span class="search-tag tag-email"        onclick="setFilter('book','author','this')">🖊 Author</span>
+                        <span class="search-tag tag-id"           onclick="setFilter('book','isbn','this')">🔢 ISBN</span>
+                    </div>
+
+                    <!-- Search input -->
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="bookSearch" class="search-input"
+                               placeholder="Click dropdown below or type to search books..."
+                               autocomplete="off"/>
+                    </div>
+                    <div id="bookCount" class="result-count"></div>
+
+                    <!-- Custom dropdown -->
+                    <div class="custom-dropdown" id="bookDropdown">
+                        <button type="button" class="dropdown-trigger" id="bookTrigger"
+                                onclick="toggleDropdown('book')">
+                            <span id="bookTriggerText">— Choose an available book —</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-list" id="bookList">
+                            <div class="dropdown-empty" id="bookEmpty">No books match your search.</div>
+                            <!-- Options injected by Thymeleaf below, hidden by default -->
+                            <div th:each="book : ${books}"
+                                 class="dropdown-option"
+                                 th:attr="data-value=${book.id},
+                                          data-search=${#strings.toLowerCase(book.title)}
+                                                    + ' ' + ${#strings.toLowerCase(book.author)}
+                                                    + ' ' + ${#strings.toLowerCase(book.isbn)},
+                                          data-title=${book.title},
+                                          data-author=${book.author},
+                                          data-isbn=${book.isbn},
+                                          data-copies=${book.availableCopies}"
+                                 onclick="selectOption('book', this)">
+                                <div class="opt-main" th:text="${book.title} + ' — ' + ${book.author}"></div>
+                                <div class="opt-sub"  th:text="'ISBN: ' + ${book.isbn} + '  •  ' + ${book.availableCopies} + ' copies available'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden real input for form submit -->
+                    <input type="hidden" name="book.id" id="bookIdInput"
+                           th:value="${issue.book != null ? issue.book.id : ''}"/>
+
+                    <div class="error-msg" th:if="${#fields.hasErrors('book')}" th:errors="*{book}"></div>
+                    <div class="hint">Only books with available copies are shown.</div>
+
+                    <!-- Book preview -->
+                    <div class="preview-card" id="bookPreview">
+                        <div class="preview-title" id="bookPreviewTitle"></div>
+                        <div class="preview-row">Author: <span id="bookPreviewAuthor"></span></div>
+                        <div class="preview-row">ISBN: <span id="bookPreviewIsbn"></span></div>
+                        <div class="preview-row">Available Copies: <span id="bookPreviewCopies"></span></div>
+                    </div>
+                </div>
+
+                <div class="section-divider">Student</div>
+
+                <!-- ══════════════════════════
+                     STUDENT SELECTION
+                ══════════════════════════ -->
+                <div class="form-group">
+                    <label>Select Student <span class="req">*</span></label>
+
+                    <!-- Search tags -->
+                    <div class="search-tags">
+                        <span class="search-tag tag-all   active" onclick="setFilter('student','','this')">All</span>
+                        <span class="search-tag tag-name"         onclick="setFilter('student','name','this')">👤 Name</span>
+                        <span class="search-tag tag-id"           onclick="setFilter('student','sid','this')">🪪 Student ID</span>
+                        <span class="search-tag tag-email"        onclick="setFilter('student','email','this')">📧 Email</span>
+                        <span class="search-tag tag-phone"        onclick="setFilter('student','phone','this')">📱 Phone</span>
+                        <span class="search-tag tag-dept"         onclick="setFilter('student','dept','this')">🏛 Department</span>
+                    </div>
+
+                    <!-- Search input -->
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="studentSearch" class="search-input"
+                               placeholder="Click dropdown below or type to search students..."
+                               autocomplete="off"/>
+                    </div>
+                    <div id="studentCount" class="result-count"></div>
+
+                    <!-- Custom dropdown -->
+                    <div class="custom-dropdown" id="studentDropdown">
+                        <button type="button" class="dropdown-trigger" id="studentTrigger"
+                                onclick="toggleDropdown('student')">
+                            <span id="studentTriggerText">— Choose a student —</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-list" id="studentList">
+                            <div class="dropdown-empty" id="studentEmpty">No students match your search.</div>
+                            <div th:each="student : ${students}"
+                                 class="dropdown-option"
+                                 th:attr="data-value=${student.id},
+                                          data-search=${#strings.toLowerCase(student.name)}
+                                                    + ' ' + ${#strings.toLowerCase(student.studentId)}
+                                                    + ' ' + ${#strings.toLowerCase(student.email)}
+                                                    + ' ' + ${student.phone != null ? #strings.toLowerCase(student.phone) : ''}
+                                                    + ' ' + ${student.department != null ? #strings.toLowerCase(student.department) : ''},
+                                          data-name=${student.name},
+                                          data-sid=${student.studentId},
+                                          data-email=${student.email},
+                                          data-phone=${student.phone != null ? student.phone : 'Not provided'},
+                                          data-dept=${student.department != null ? student.department : 'N/A'}"
+                                 onclick="selectOption('student', this)">
+                                <div class="opt-main" th:text="${student.name}"></div>
+                                <div class="opt-sub"
+                                     th:text="'ID: ' + ${student.studentId}
+                                              + '  •  ' + (${student.department} != null ? ${student.department} : '—')
+                                              + '  •  ' + ${student.email}
+                                              + '  •  Ph: ' + (${student.phone} != null ? ${student.phone} : 'No phone')">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden real input -->
+                    <input type="hidden" name="student.id" id="studentIdInput"
+                           th:value="${issue.student != null ? issue.student.id : ''}"/>
+
+                    <div class="error-msg" th:if="${#fields.hasErrors('student')}" th:errors="*{student}"></div>
+                    <div class="hint">No ID? Search by name, email, phone or department.</div>
+
+                    <!-- Student preview -->
+                    <div class="preview-card" id="studentPreview">
+                        <div class="preview-title" id="studentPreviewName"></div>
+                        <div class="preview-row">Student ID: <span id="studentPreviewSid"></span></div>
+                        <div class="preview-row">Department: <span id="studentPreviewDept"></span></div>
+                        <div class="preview-row">Email: <span id="studentPreviewEmail"></span></div>
+                        <div class="preview-row">Phone: <span id="studentPreviewPhone"></span></div>
+                    </div>
+                </div>
+
+            </div><!-- /form-body -->
+
+            <div class="form-actions">
+                <a th:href="@{/issues}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-submit">✓ Issue Book</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer>&copy; 2025 Library Management System &mdash; Developed by <strong style="color: var(--gold-light);">Ashok Kumar Mishra</strong></footer>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const state = {
+    book:    { open: false, filterKey: '' },
+    student: { open: false, filterKey: '' }
+};
+
+// ══════════════════════════════════════════════
+//  TOGGLE DROPDOWN OPEN / CLOSE
+// ══════════════════════════════════════════════
+function toggleDropdown(type) {
+    const isOpen = state[type].open;
+    // Close both first
+    closeDropdown('book');
+    closeDropdown('student');
+    if (!isOpen) openDropdown(type);
+}
+
+function openDropdown(type) {
+    state[type].open = true;
+    document.getElementById(type + 'List').classList.add('open');
+    document.getElementById(type + 'Trigger').classList.add('open');
+    // Focus search input
+    document.getElementById(type + 'Search').focus();
+}
+
+function closeDropdown(type) {
+    state[type].open = false;
+    document.getElementById(type + 'List').classList.remove('open');
+    document.getElementById(type + 'Trigger').classList.remove('open');
+}
+
+// Close on outside click
+document.addEventListener('click', function(e) {
+    ['book','student'].forEach(type => {
+        const dd = document.getElementById(type + 'Dropdown');
+        const search = document.getElementById(type + 'Search');
+        if (!dd.contains(e.target) && !search.contains(e.target)) {
+            closeDropdown(type);
+        }
+    });
+});
+
+// ══════════════════════════════════════════════
+//  SELECT AN OPTION
+// ══════════════════════════════════════════════
+function selectOption(type, el) {
+    const value = el.getAttribute('data-value');
+
+    // Mark selected in list
+    document.querySelectorAll('#' + type + 'List .dropdown-option')
+            .forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+
+    // Update hidden input
+    document.getElementById(type + 'IdInput').value = value;
+
+    // Update trigger label
+    const mainText = el.querySelector('.opt-main').textContent;
+    const trigger  = document.getElementById(type + 'TriggerText');
+    trigger.textContent = mainText;
+    document.getElementById(type + 'Trigger').classList.add('has-value');
+
+    // Show preview card
+    showPreview(type, el);
+
+    // Close dropdown
+    closeDropdown(type);
+
+    // Clear search
+    document.getElementById(type + 'Search').value = '';
+    filterOptions(type, '');
+}
+
+// ══════════════════════════════════════════════
+//  SHOW PREVIEW CARD
+// ══════════════════════════════════════════════
+function showPreview(type, el) {
+    if (type === 'book') {
+        document.getElementById('bookPreviewTitle').textContent  = el.getAttribute('data-title')  || '';
+        document.getElementById('bookPreviewAuthor').textContent = el.getAttribute('data-author') || '';
+        document.getElementById('bookPreviewIsbn').textContent   = el.getAttribute('data-isbn')   || '';
+        document.getElementById('bookPreviewCopies').textContent = el.getAttribute('data-copies') || '';
+        document.getElementById('bookPreview').classList.add('show');
+    } else {
+        document.getElementById('studentPreviewName').textContent  = el.getAttribute('data-name')  || '';
+        document.getElementById('studentPreviewSid').textContent   = el.getAttribute('data-sid')   || '';
+        document.getElementById('studentPreviewDept').textContent  = el.getAttribute('data-dept')  || '';
+        document.getElementById('studentPreviewEmail').textContent = el.getAttribute('data-email') || '';
+        document.getElementById('studentPreviewPhone').textContent = el.getAttribute('data-phone') || '';
+        document.getElementById('studentPreview').classList.add('show');
+    }
+}
+
+// ══════════════════════════════════════════════
+//  FILTER OPTIONS
+// ══════════════════════════════════════════════
+function filterOptions(type, query) {
+    const options  = document.querySelectorAll('#' + type + 'List .dropdown-option');
+    const emptyEl  = document.getElementById(type + 'Empty');
+    const countEl  = document.getElementById(type + 'Count');
+    const filterKey = state[type].filterKey;
+    let visible = 0;
+
+    options.forEach(opt => {
+        let searchData = (opt.getAttribute('data-search') || '').toLowerCase();
+
+        // If a specific field filter is active, use only that field
+        if (filterKey) {
+            searchData = (opt.getAttribute('data-' + filterKey) || '').toLowerCase();
+        }
+
+        const show = query === '' || searchData.includes(query.toLowerCase());
+        opt.classList.toggle('hidden', !show);
+        if (show) visible++;
+    });
+
+    // Empty message
+    emptyEl.style.display = (visible === 0) ? 'block' : 'none';
+
+    // Count badge
+    if (query === '') {
+        countEl.style.display = 'none';
+    } else {
+        countEl.style.display = 'block';
+        if (visible === 0) {
+            countEl.textContent = '❌ No results for "' + query + '"';
+            countEl.className   = 'result-count count-none';
+        } else {
+            countEl.textContent = '✓ ' + visible + ' result(s) found';
+            countEl.className   = 'result-count count-found';
+        }
+    }
+
+    // Auto-open dropdown when typing
+    if (query.length > 0 && !state[type].open) {
+        openDropdown(type);
+    }
+}
+
+// ══════════════════════════════════════════════
+//  SEARCH INPUT LISTENERS
+// ══════════════════════════════════════════════
+['book','student'].forEach(type => {
+    document.getElementById(type + 'Search').addEventListener('input', function() {
+        filterOptions(type, this.value.trim());
+    });
+});
+
+// ══════════════════════════════════════════════
+//  TAG FILTER — narrow search to specific field
+// ══════════════════════════════════════════════
+function setFilter(type, key, tagEl) {
+    state[type].filterKey = key;
+
+    // Update active tag
+    const tags = tagEl.closest('.search-tags').querySelectorAll('.search-tag');
+    tags.forEach(t => t.classList.remove('active'));
+    tagEl.classList.add('active');
+
+    // Update placeholder
+    const placeholders = {
+        '':       type === 'book' ? 'Type book title, author or ISBN...' : 'Type name, ID, email, phone or department...',
+        'title':  'Type book title to filter...',
+        'author': 'Type author name to filter...',
+        'isbn':   'Type ISBN to filter...',
+        'name':   'Type student name to filter...',
+        'sid':    'Type student ID to filter...',
+        'email':  'Type email address to filter...',
+        'phone':  'Type phone number to filter...',
+        'dept':   'Type department (CSE, ECE...) to filter...',
+    };
+    document.getElementById(type + 'Search').placeholder = placeholders[key] || '';
+
+    // Re-filter with current query
+    const query = document.getElementById(type + 'Search').value.trim();
+    filterOptions(type, query);
+
+    // Open dropdown
+    openDropdown(type);
+    document.getElementById(type + 'Search').focus();
+}
+</script>
+</body>
+</html>
